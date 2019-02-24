@@ -2,57 +2,51 @@
 using System;
 using System.Data.Entity;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Mystery.Example.DAL.Repositories.GenericRepository
 {
-    public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class, new()
+    using System.Collections.Generic;
+
+    public class GenericRepository<TEntity, TId> : IGenericRepository<TEntity, TId> where TEntity : class, new()
     {
-        private ShopDbContext _context;
-        private readonly DbSet<TEntity> _dbSet;
+        private readonly ShopDbContext context;
 
         public GenericRepository(ShopDbContext context)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            _dbSet = _context.Set<TEntity>();
-        }
-
-        ~GenericRepository() => ReleaseUnmanagedResources();
-
-        private void ReleaseUnmanagedResources()
-        {
-            _context?.Dispose();
-            _context = null;
-        }
-
-        public void Dispose()
-        {
-            ReleaseUnmanagedResources();
-            GC.SuppressFinalize(this);
+            this.context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         #region CRUD
 
-        public IQueryable<TEntity> GetQuery() => _dbSet;
+        public IEnumerable<TEntity> GetAll()
+        {
+            return this.context.Set<TEntity>().ToList();
+        }
 
-        public IQueryable<TEntity> GetQueryAsNoTracking() => _dbSet.AsNoTracking().AsQueryable();
+        public TEntity Get(TId id)
+        {
+            return this.context.Set<TEntity>().Find(id);
+        }
 
         public TEntity Add(TEntity entity)
         {
-            _dbSet.Add(entity);
+            this.context.Set<TEntity>().Add(entity);
 
             return entity;
         }
 
         public TEntity Update(TEntity entity)
         {
-            _dbSet.Attach(entity);
-            _context.Entry(entity).State = EntityState.Modified;
+            this.context.Set<TEntity>().Attach(entity);
+            this.context.Entry(entity).State = EntityState.Modified;
 
             return entity;
         }
 
-        public void Delete(TEntity entity) => _dbSet.Remove(entity);
+        public void Delete(TEntity entity)
+        {
+            this.context.Set<TEntity>().Remove(entity);
+        }
  
         #endregion
     }

@@ -8,38 +8,49 @@ using System.Linq;
 
 namespace Mystery.Example.BLL.Services
 {
-    public class CustomerService : BaseService.BaseService, ICustomerService
+    using System;
+
+    public class CustomerService : ICustomerService
     {
-        private readonly IUnitOfWork unitOfWork;
+        private readonly IUnitOfWorkFactory unitOfWorkFactory;
 
-        private readonly IGenericRepository<CustomerDbModel> customerGenericRepository;
-
-        public CustomerService(IUnitOfWork unitOfWork) : base()
+        public CustomerService(IUnitOfWorkFactory unitOfWorkFactory)
         {
-            this.unitOfWork = unitOfWork;
-            customerGenericRepository = unitOfWork.GetGenericRepository<CustomerDbModel>();
+            this.unitOfWorkFactory = unitOfWorkFactory ?? throw new ArgumentNullException(nameof(unitOfWorkFactory));
         }
 
-        protected override void Dispose(bool disposing)
+        public IEnumerable<CustomerModel> GetAll()
         {
-            if (disposing)
+            using (var unitOfWork = this.unitOfWorkFactory.Create())
             {
-                unitOfWork?.Dispose();
-            }
+                var repository = unitOfWork.GetGenericRepository<CustomerDbModel, int>();
 
-            base.Dispose(disposing);
+                return repository.GetAll().Select(ConvertCustomerDbModel.ToModel);
+            }
         }
 
-        public IEnumerable<CustomerModel> GetCustomers() =>
-            customerGenericRepository.GetQueryAsNoTracking().AsEnumerable().Select(ConvertCustomerDbModel.ToModel);
+        public CustomerModel Get(int id)
+        {
+            using (var unitOfWork = this.unitOfWorkFactory.Create())
+            {
+                var repository = unitOfWork.GetGenericRepository<CustomerDbModel, int>();
 
-      
-        public CustomerModel CreateCustomers(CustomerRequestModel customer)
+                return ConvertCustomerDbModel.ToModel(repository.Get(id));
+            }
+        }
+
+        public CustomerModel Create(CustomerRequestModel customer)
         {
             var customerDbModel = ConvertCustomerView.ToDbModel(customer);
 
-            customerGenericRepository.Add(customerDbModel);
-            unitOfWork.SaveChanges();
+            using (var unitOfWork = this.unitOfWorkFactory.Create())
+            {
+                var repository = unitOfWork.GetGenericRepository<CustomerDbModel, int>();
+
+                repository.Add(customerDbModel);
+
+                unitOfWork.SaveChanges();
+            }
 
             return ConvertCustomerDbModel.ToModel(customerDbModel);
         }

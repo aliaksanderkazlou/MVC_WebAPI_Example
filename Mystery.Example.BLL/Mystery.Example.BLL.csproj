@@ -48,7 +48,6 @@
     <Compile Include="Conveter\Customer\ConvertCustomerView.cs" />
     <Compile Include="NinjectModules.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\BaseService\BaseService.cs" />
     <Compile Include="Services\CustomerService.cs" />
   </ItemGroup>
   <ItemGroup>

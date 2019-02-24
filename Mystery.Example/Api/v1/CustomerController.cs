@@ -4,24 +4,30 @@ using System.Web.Http;
 
 namespace Mystery.Example.Api.v1
 {
+    using System;
+
     public class CustomerController : ApiController
     {
         private readonly ICustomerService service;
 
-        public CustomerController(ICustomerService service) => this.service = service;
+        public CustomerController(ICustomerService service) =>
+            this.service = service ?? throw new ArgumentNullException(nameof(service));
 
-        protected override void Dispose(bool disposing)
+        [HttpGet]
+        public IHttpActionResult GetCustomers() => this.Ok(this.service.GetAll());
+
+        [HttpGet]
+        public IHttpActionResult Get(int id)
         {
-            if (disposing)
-            {
-                service?.Dispose();
-            }
-
-            base.Dispose(disposing);
+            return this.Ok(this.service.Get(id));
         }
 
-        public IHttpActionResult GetCustomers() => Ok(service.GetCustomers());
+        [HttpPost]
+        public IHttpActionResult CreateCustomers([FromBody] CustomerRequestModel customer)
+        {
+            var createdCustomer = this.service.Create(customer);
 
-        [HttpPost] public IHttpActionResult CreateCustomers([FromBody]CustomerRequestModel customer) => Ok(service.CreateCustomers(customer));
+            return this.CreatedAtRoute("Get", new { id = createdCustomer.Id }, createdCustomer);
+        }
     }
 }

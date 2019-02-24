@@ -2,11 +2,13 @@
 
 namespace Mystery.Example.DAL.Common.Interfaces
 {
-    public interface IGenericRepository<TEntity> where TEntity : class, new()
-    {
-        IQueryable<TEntity> GetQuery();
+    using System.Collections.Generic;
 
-        IQueryable<TEntity> GetQueryAsNoTracking();
+    public interface IGenericRepository<TEntity, in TId> where TEntity : class, new()
+    {
+        IEnumerable<TEntity> GetAll();
+
+        TEntity Get(TId id);
 
         TEntity Add(TEntity model);
 

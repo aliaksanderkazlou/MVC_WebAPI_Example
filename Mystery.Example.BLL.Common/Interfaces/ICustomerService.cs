@@ -4,10 +4,12 @@ using System.Collections.Generic;
 
 namespace Mystery.Example.BLL.Common.Interfaces
 {
-    public interface ICustomerService : IDisposable
+    public interface ICustomerService
     {
-        IEnumerable<CustomerModel> GetCustomers();
+        IEnumerable<CustomerModel> GetAll();
 
-        CustomerModel CreateCustomers(CustomerRequestModel customer);
+        CustomerModel Get(int id);
+
+        CustomerModel Create(CustomerRequestModel customer);
     }
 }
